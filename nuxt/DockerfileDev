@@ -1,0 +1,11 @@
+FROM devcomp/nuxt:0.0.0
+#COPY . /tmp/
+RUN cd /usr \
+    && git clone -b 0.0.0 https://github.com/devcompru/client.git  app \
+    && cd /usr/app \
+    && rm static/robots.txt \
+    #&& mv -f static/robots_production.txt static/robots.txt \
+    && npm run build \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /usr/app
+CMD [ "npm", "run", "dev" ]

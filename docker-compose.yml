@@ -1,0 +1,67 @@
+version: "3.1"
+
+
+services:
+
+# MariaDB START
+  devcomp_mariadb_dev:
+    image: mariadb
+    restart: always
+    container_name: devcomp_mariadb_dev
+    env_file:
+      - ./environment.env
+    ports:
+      - 11111:3306
+    volumes:
+      - ../app/database:/var/lib/mysql
+      - ./mariadb/conf.d/md.conf:/etc/mysql/conf.d/md.conf
+    networks:
+      - devcomp_dev
+
+  devcomp_nuxt_dev:
+    container_name: devcomp_nuxt_dev
+    build:
+      context: ./nuxt
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - devcomp_mariadb_dev
+      - devcomp_php_dev
+    volumes:
+      - ../app/client/assets:/usr/app/assets
+      - ../app/client/components:/usr/app/components
+      - ../app/client/layouts:/usr/app/layouts
+      - ../app/client/middleware:/usr/app/middleware
+      - ../app/client/pages:/usr/app/pages
+      - ../app/client/plugins:/usr/app/plugins
+      - ../app/client/static:/usr/app/static
+      - ../app/client/store:/usr/app/store
+      - ../app/client/nuxt.config.js:/usr/app/nuxt.config.js
+    ports:
+    - 11112:3000
+    networks:
+      - devcomp_dev
+
+  devcomp_php_dev:
+    container_name: devcomp_php_dev
+    build:
+      context: ./php8.0.9-fpm
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 11113:9000
+    env_file:
+      - ./environment.env
+    depends_on:
+      - devcomp_mariadb_dev
+    volumes:
+      - ../app/api:/usr/app
+      - ./php8.0.9-fpm/php.ini:/usr/local/etc/php/conf.d/40-custom.ini
+    networks:
+      - devcomp_dev
+
+
+networks:
+  devcomp_dev:
+    driver: bridge
+
